@@ -1,0 +1,11 @@
+{
+  "name": "ai-course-advisor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI课程顾问 Web应用 —— OPC接单吧实战能力大赛 软件与智能体赛道 B级测试单",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "smoke": "node test/smoke.js"
+  }
+}

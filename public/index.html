@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>AI教育中心 · AI课程顾问</title>
+<style>
+  :root {
+    --blue: #3563c9; --blue-dark: #25468f; --gold: #d98a2b; --bg: #f3f5fa; --card: #ffffff;
+    --text: #2b3245; --muted: #7d87a0; --border: #dde3f0; --warn: #b0503c; --err-bg: #faeee6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; overflow-x: clip; }
+  body { font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+  netlify-badge, #netlify-badge, .netlify-badge, [class*="netlify" i], [id*="netlify" i] { display: none !important; }
+  header { background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .logo { font-size: 17px; font-weight: 700; color: var(--blue-dark); }
+  .logo small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); }
+  .badge { font-size: 11px; color: #36508a; background: #e9effc; border: 1px solid #c8d6f2; border-radius: 999px; padding: 3px 10px; }
+  .spacer { flex: 1; }
+  .hbtn { font-size: 12px; color: var(--blue-dark); background: none; border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+  .hbtn:hover { background: #eef2fb; }
+  main { flex: 1; overflow-y: auto; padding: 16px; }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  .welcome { background: linear-gradient(135deg, #eaf0fd, #dce7fa); border: 1px solid #c8d6f2; border-radius: 18px; padding: 18px; margin-bottom: 14px; }
+  .w-row { display: flex; gap: 14px; align-items: center; }
+  .avatar { flex: 0 0 auto; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; box-shadow: 0 2px 8px rgba(50,80,150,.2); border: 2px solid #ffffff; }
+  .w-text h2 { font-size: 16px; color: var(--blue-dark); margin-bottom: 4px; line-height: 1.5; }
+  .w-text p { font-size: 13px; color: var(--text); line-height: 1.7; }
+  .topics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .topic { display: flex; align-items: center; gap: 10px; text-align: left; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; cursor: pointer; transition: transform .15s, box-shadow .15s, border-color .15s; }
+  .topic:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(50,80,150,.12); border-color: #aec2ec; }
+  .topic svg { flex: 0 0 auto; }
+  .topic b { display: block; font-size: 13.5px; color: var(--text); font-weight: 600; }
+  .topic i { display: block; font-style: normal; font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .msg { display: flex; margin-bottom: 12px; }
+  .msg.user { justify-content: flex-end; }
+  .bubble { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.75; white-space: pre-wrap; word-break: break-word; }
+  .msg.user .bubble { background: linear-gradient(135deg, #4a7ad4, #3563c9); color: #fff; border-bottom-right-radius: 6px; }
+  .msg.bot .bubble { background: var(--card); border: 1px solid var(--border); border-bottom-left-radius: 6px; }
+  .msg.error .bubble { background: var(--err-bg); border: 1px solid #eccfb9; color: var(--warn); font-size: 13px; }
+  .sources { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .src { font-size: 11px; color: #47609e; background: #eef3fd; border: 1px solid #cfddf6; border-radius: 999px; padding: 2px 10px; }
+  .typing span { display: inline-block; width: 6px; height: 6px; margin-right: 4px; border-radius: 50%; background: var(--blue); animation: blink 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay: .2s; } .typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+  .inputbar { background: var(--card); border-top: 1px solid var(--border); padding: 8px 12px 6px; }
+  .chips { max-width: 780px; margin: 0 auto 6px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; font-size: 11px; color: #36508a; background: #f2f6fd; border: 1px solid #d6e0f4; border-radius: 999px; padding: 4px 11px; cursor: pointer; }
+  .chip:hover { background: #e6eefa; }
+  .row { max-width: 780px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; }
+  textarea { flex: 1; resize: none; height: 40px; max-height: 120px; border: 1px solid var(--border); border-radius: 16px; padding: 9px 12px; font-size: 16px; font-family: inherit; outline: none; background: #fdfdff; }
+  textarea::placeholder { font-size: 12px; color: #a4aec4; }
+  textarea:focus { border-color: #8fabe4; box-shadow: 0 0 0 3px rgba(53,99,201,.14); }
+  .send { background: var(--blue); color: #fff; border: none; border-radius: 999px; padding: 0 17px; height: 40px; font-size: 14px; cursor: pointer; }
+  .send:hover { background: var(--blue-dark); }
+  .send:disabled { background: #b9c6e2; cursor: not-allowed; }
+  .mic { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: #fdfdff; color: var(--blue-dark); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .mic:hover { background: #eef2fb; }
+  .mic.on { color: #fff; background: var(--warn); border-color: var(--warn); animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(176,80,60,.35); } 50% { box-shadow: 0 0 0 7px rgba(176,80,60,0); } }
+  .meta { max-width: 780px; margin: 2px auto 0; display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+  .foot { background: var(--bg); border-top: 1px solid var(--border); padding: 4px 12px; font-size: 10px; color: var(--muted); text-align: center; line-height: 1.5; }
+  .drawer-mask { position: fixed; inset: 0; background: rgba(0,0,0,.25); display: none; }
+  .drawer { position: fixed; top: 0; right: 0; width: 300px; height: 100vh; height: 100dvh; background: var(--card); box-shadow: -2px 0 12px rgba(0,0,0,.08); transform: translateX(105%); visibility: hidden; pointer-events: none; transition: transform .25s, visibility .25s; display: flex; flex-direction: column; z-index: 10; }
+  .drawer.open { transform: translateX(0); visibility: visible; pointer-events: auto; }
+  .drawer-mask.open { display: block; }
+  .drawer header { justify-content: space-between; }
+  .drawer h3 { font-size: 14px; color: var(--blue-dark); }
+  .sess-list { flex: 1; overflow-y: auto; padding: 10px; }
+  .tip-card { background: linear-gradient(135deg, #eef3fd, #e2ebfb); border: 1px solid #cddaf3; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+  .tip-h { font-size: 12px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px; }
+  .tip-t { font-size: 12.5px; color: var(--text); line-height: 1.7; }
+  .tip-s { font-size: 10.5px; color: var(--muted); margin-top: 6px; }
+  .grp { font-size: 11px; color: var(--muted); margin: 10px 4px 6px; }
+  .sess { padding: 10px 12px; border-radius: 12px; cursor: pointer; margin-bottom: 6px; border: 1px solid var(--border); }
+  .sess:hover { background: #f2f5fc; }
+  .sess .t { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sess .d { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  @media (max-width: 640px) {
+    .bubble { max-width: 92%; font-size: 13.5px; }
+    .drawer { width: 82vw; }
+    .w-row { align-items: flex-start; }
+    .avatar { width: 50px; height: 50px; }
+    .chips { flex-wrap: nowrap; overflow-x: auto; }
+    .topic b { font-size: 12.5px; }
+    .topic i { font-size: 10.5px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">AI教育中心 · AI课程顾问<small>夏令营 · 教师培训 · OPC平台 —— 课程咨询一站解答</small></div>
+  <span class="badge">动态LLM调用｜模型：DeepSeek</span>
+  <div class="spacer"></div>
+  <button class="hbtn" id="nickBtn" type="button">设置昵称</button>
+  <button class="hbtn" id="histBtn" type="button">历史记录</button>
+</header>
+
+<main id="main"><div class="wrap" id="chat">
+  <div class="welcome" id="welcomeCard">
+    <div class="w-row">
+      <div class="avatar" aria-hidden="true">
+        <svg viewBox="0 0 96 96" width="100%" height="100%">
+          <defs>
+            <linearGradient id="avbg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#dce7fa" />
+              <stop offset="1" stop-color="#b9cff4" />
+            </linearGradient>
+          </defs>
+          <circle cx="48" cy="48" r="48" fill="url(#avbg)" />
+          <!-- 颈部 -->
+          <rect x="43.5" y="55" width="9" height="11" rx="3" fill="#f3c9a4" />
+          <rect x="43.5" y="55" width="9" height="4.5" rx="2" fill="#e6b48c" />
+          <!-- 蓝色上衣 -->
+          <path d="M22 96 C22 76 31 66 41 64 L48 78 L55 64 C65 66 74 76 74 96 Z" fill="#3563c9" />
+          <!-- 浅色翻领 -->
+          <path d="M41 64 L48 78 L55 64 L52 63 L48 72 L44 63 Z" fill="#eaf0fd" />
+          <!-- 手持书本（画面左侧） -->
+          <circle cx="25.5" cy="80" r="3.4" fill="#f3c9a4" />
+          <rect x="16" y="64" width="20" height="14" rx="2" fill="#ffffff" stroke="#c8d6f2" stroke-width="1.2" />
+          <path d="M26 64 L26 78" stroke="#c8d6f2" stroke-width="1.2" />
+          <text x="21" y="74" font-size="7" font-weight="700" fill="#3563c9" text-anchor="middle">AI</text>
+          <!-- 脸 -->
+          <circle cx="48" cy="40" r="17.5" fill="#f6d0ac" />
+          <!-- 利落短发 -->
+          <path d="M30.5 38 C30.5 27 38 21 48 21 C58 21 65.5 27 65.5 38 C65.5 40.5 64 41 63.5 39.5 C62 33.5 57.5 29.5 48 29.5 C38.5 29.5 34 33.5 32.5 39.5 C32 41 30.5 40.5 30.5 38 Z" fill="#3d3a50" />
+          <!-- 眼睛（略弯，带笑意） -->
+          <path d="M37.6 42 Q40.5 40.2 43.4 42" fill="none" stroke="#2b3245" stroke-width="1.9" stroke-linecap="round" />
+          <path d="M52.6 42 Q55.5 40.2 58.4 42" fill="none" stroke="#2b3245" stroke-width="1.9" stroke-linecap="round" />
+          <!-- 眉毛 -->
+          <path d="M37 34.6 Q40.5 33 43.6 34.4" fill="none" stroke="#5a5468" stroke-width="1.5" stroke-linecap="round" />
+          <path d="M52.4 34.4 Q55.5 33 59 34.6" fill="none" stroke="#5a5468" stroke-width="1.5" stroke-linecap="round" />
+          <!-- 腮红与微笑 -->
+          <ellipse cx="35.5" cy="48.5" rx="3" ry="1.9" fill="#efae85" opacity=".55" />
+          <ellipse cx="60.5" cy="48.5" rx="3" ry="1.9" fill="#efae85" opacity=".55" />
+          <path d="M42 49.5 Q48 54.5 54 49.5" fill="none" stroke="#bd7040" stroke-width="2.3" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div class="w-text">
+        <h2 id="welcomeTitle">你好～我是AI教育中心的课程顾问</h2>
+        <p>学生夏令营、教师培训、OPC平台服务，都可以问我。点一张话题卡直接开始，或在下方输入你的问题～</p>
+      </div>
+    </div>
+    <div class="topics">
+      <button class="topic" type="button" data-q="学生有什么课程？介绍一下夏令营">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 4 2.5 8.5 12 13l7.5-3.6v5.1h2V8.5L12 4z" fill="#3563c9"/><path d="M6.5 12.5v3.2c0 1.6 2.5 3.3 5.5 3.3s5.5-1.7 5.5-3.3v-3.2L12 15.5l-5.5-3z" fill="#d98a2b"/></svg>
+        <span><b>学生课程</b><i>7天6晚AI素养夏令营</i></span>
+      </button>
+      <button class="topic" type="button" data-q="教师培训有哪些级别？适合什么老师？">
+        <svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="5" width="18" height="12" rx="2" fill="none" stroke="#3563c9" stroke-width="1.8"/><path d="M8 20h8" stroke="#d98a2b" stroke-width="2" stroke-linecap="round"/><path d="M7 9h6M7 12h9" stroke="#3563c9" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span><b>教师培训</b><i>L1-L3三级进阶认证</i></span>
+      </button>
+      <button class="topic" type="button" data-q="查看所有班型：夏令营和教师培训各有哪些班？">
+        <svg viewBox="0 0 24 24" width="20" height="20"><rect x="3.5" y="4" width="7" height="7" rx="1.5" fill="#3563c9"/><rect x="13.5" y="4" width="7" height="7" rx="1.5" fill="#d98a2b"/><rect x="3.5" y="13" width="7" height="7" rx="1.5" fill="#d98a2b"/><rect x="13.5" y="13" width="7" height="7" rx="1.5" fill="#3563c9"/></svg>
+        <span><b>查看所有班型</b><i>线下班 · 直播班 · 集训班</i></span>
+      </button>
+      <button class="topic" type="button" data-q="费用说明：各项课程怎么收费？有优惠吗？">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 5a1 1 0 0 1 1-1h6.2a2 2 0 0 1 1.4.6l7 7a2 2 0 0 1 0 2.8l-5.2 5.2a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 4 11.2z" fill="none" stroke="#d98a2b" stroke-width="1.8"/><circle cx="8.5" cy="8.5" r="1.4" fill="#d98a2b"/></svg>
+        <span><b>费用说明</b><i>学费 · 优惠 · 退费规则</i></span>
+      </button>
+    </div>
+  </div>
+</div></main>
+
+<div class="inputbar">
+  <div class="chips" id="chips">
+    <button class="chip" type="button">学生课程</button>
+    <button class="chip" type="button">教师培训</button>
+    <button class="chip" type="button">查看所有班型</button>
+    <button class="chip" type="button">费用说明</button>
+    <button class="chip" type="button">报名方式</button>
+    <button class="chip" type="button">OPC平台会员价格</button>
+  </div>
+  <div class="row">
+    <textarea id="input" placeholder="请输入您的问题（Enter 发送）" maxlength="600"></textarea>
+    <button class="mic" id="micBtn" type="button" title="语音输入" hidden>
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-5a3.5 3.5 0 1 0-7 0v5A3.5 3.5 0 0 0 12 15z" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 17.5V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+    <button class="send" id="sendBtn" type="button">发送</button>
+  </div>
+  <div class="meta"><span id="who"></span><span id="count">0/500</span></div>
+</div>
+
+<div class="foot">课程信息以《2026暑期AI素养夏令营课程手册》《初高中教师AI素养培训体系介绍》《OPC超级个体赋能平台产品白皮书》为准<br>报名与最新动态请以官方咨询渠道确认为准</div>
+
+<div class="drawer-mask" id="mask"></div>
+<aside class="drawer" id="drawer">
+  <header><h3>历史对话</h3><button class="hbtn" id="newBtn" type="button">新会话</button></header>
+  <div class="sess-list" id="sessList">
+    <div class="tip-card">
+      <div class="tip-h">课程速览</div>
+      <div class="tip-t" id="tipText"></div>
+      <div class="tip-s" id="tipSrc"></div>
+    </div>
+    <div id="sessGroups"></div>
+  </div>
+</aside>
+
+<script>
+function killBadge() {
+  document.querySelectorAll('netlify-badge, [id*="netlify" i], [class*="netlify" i], iframe[src*="netlify" i], script[src*="netlify" i]').forEach((e) => e.remove());
+}
+killBadge();
+new MutationObserver(killBadge).observe(document.documentElement, { childList: true, subtree: true });
+let badgeTries = 0;
+const badgeTimer = setInterval(() => { killBadge(); if (++badgeTries > 20) clearInterval(badgeTimer); }, 500);
+
+const $ = (id) => document.getElementById(id);
+const chat = $('chat'), input = $('input'), sendBtn = $('sendBtn'), micBtn = $('micBtn');
+let user = localStorage.getItem('aca_user') || '';
+let sessions = JSON.parse(localStorage.getItem('aca_sessions') || '[]');
+let session = null;
+
+function save() { localStorage.setItem('aca_sessions', JSON.stringify(sessions.slice(-30))); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmt(s) { return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>'); }
+function now() { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+
+function refreshWho() {
+  $('who').textContent = user ? '当前用户：' + user : '';
+  $('welcomeTitle').textContent = '你好' + (user ? '，' + user : '') + '～我是AI教育中心的课程顾问';
+}
+
+function newSession() {
+  session = { id: 's' + Date.now(), title: '新对话', time: now(), messages: [] };
+  sessions.push(session); save(); renderSession(); closeDrawer();
+}
+
+function renderSession() {
+  chat.querySelectorAll('.msg').forEach((n) => n.remove());
+  for (const m of session.messages) addBubble(m.role, m.content, m.sources, false);
+  main.scrollTop = main.scrollHeight;
+}
+
+function addBubble(role, content, sources, animate) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role === 'user' ? 'user' : role === 'error' ? 'error' : 'bot');
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  b.innerHTML = fmt(content);
+  div.appendChild(b);
+  if (sources && sources.length) {
+    const s = document.createElement('div'); s.className = 'sources';
+    sources.forEach((x) => { const c = document.createElement('span'); c.className = 'src'; c.textContent = '来源：《' + x.doc.replace(/^素材[ABC]：/, '') + '》·' + x.chapter; s.appendChild(c); });
+    b.appendChild(s);
+  }
+  chat.appendChild(div);
+  main.scrollTop = main.scrollHeight;
+  return div;
+}
+
+function addError(text) {
+  chat.querySelectorAll('.msg.error').forEach((n) => { if (n.textContent.trim() === text) n.remove(); });
+  addBubble('error', text);
+}
+
+function setLoading(on) {
+  sendBtn.disabled = on;
+  const old = document.querySelector('.msg.loading');
+  if (old) old.remove();
+  if (on) {
+    const div = document.createElement('div');
+    div.className = 'msg bot loading';
+    div.innerHTML = '<div class="bubble typing"><span></span><span></span><span></span></div>';
+    chat.appendChild(div); main.scrollTop = main.scrollHeight;
+  }
+}
+
+const CHIP_QUESTIONS = {
+  '学生课程': '学生有什么课程？介绍一下夏令营',
+  '教师培训': '教师培训有哪些级别？适合什么老师？',
+  '查看所有班型': '查看所有班型：夏令营和教师培训各有哪些班？',
+  '费用说明': '费用说明：各项课程怎么收费？有优惠吗？',
+  '报名方式': '怎么报名？报名方式和截止时间是什么？',
+};
+
+async function send(text) {
+  const msg = (text !== undefined ? text : input.value).trim();
+  if (!msg) { addError('请输入您的问题'); return; }
+  if (msg.length > 500) { addError('输入内容过长，请精简后重试'); return; }
+  if (listening) rec.stop();
+  if (!session) { newSession(); }
+  addBubble('user', msg);
+  session.messages.push({ role: 'user', content: msg });
+  if (session.title === '新对话') session.title = msg.slice(0, 18);
+  save();
+  input.value = ''; $('count').textContent = '0/500';
+  setLoading(true);
+  const history = session.messages.slice(-9, -1).map((m) => ({ role: m.role, content: m.content }));
+  try {
+    const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg, history, sessionId: session.id }) });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok || data.code !== 0) { addError((data && data.message) || '服务繁忙，请稍后重试'); return; }
+    addBubble('bot', data.data.reply, data.data.sources);
+    session.messages.push({ role: 'assistant', content: data.data.reply, sources: data.data.sources });
+    save();
+  } catch (e) {
+    setLoading(false);
+    addError('服务繁忙，请稍后重试');
+  }
+}
+
+function groupOf(timeStr) {
+  const d = new Date(timeStr.replace(' ', 'T'));
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const day = new Date(d); day.setHours(0, 0, 0, 0);
+  const diff = Math.round((today - day) / 86400000);
+  if (diff <= 0) return '今天';
+  if (diff === 1) return '昨天';
+  if (diff <= 30) return '近30天';
+  return '更早';
+}
+
+function renderDrawer() {
+  const box = $('sessGroups'); box.innerHTML = '';
+  const order = ['今天', '昨天', '近30天', '更早'];
+  const groups = { '今天': [], '昨天': [], '近30天': [], '更早': [] };
+  [...sessions].reverse().forEach((s) => groups[groupOf(s.time)].push(s));
+  for (const name of order) {
+    const arr = groups[name];
+    if (!arr.length) continue;
+    const h = document.createElement('div'); h.className = 'grp'; h.textContent = name; box.appendChild(h);
+    arr.forEach((s) => {
+      const d = document.createElement('div'); d.className = 'sess';
+      d.innerHTML = '<div class="t"></div><div class="d"></div>';
+      d.querySelector('.t').textContent = s.title;
+      d.querySelector('.d').textContent = s.time + ' · ' + s.messages.length + ' 条';
+      d.onclick = () => { session = s; renderSession(); closeDrawer(); };
+      box.appendChild(d);
+    });
+  }
+}
+function openDrawer() { renderDrawer(); $('drawer').classList.add('open'); $('mask').classList.add('open'); }
+function closeDrawer() { $('drawer').classList.remove('open'); $('mask').classList.remove('open'); }
+
+/* 课程速览：逐句摘自三份素材的结构化知识库，按日轮换，不编造 */
+const TIPS = [
+  { t: '2026暑期AI素养夏令营：7天6晚共42课时，涵盖AI认知启蒙、提示词工程、AI绘画、AI视频、智能体搭建、项目实战六大板块，面向初高中学生，无需编程基础。', d: '2026暑期AI素养夏令营课程手册', s: '第一章/第二章' },
+  { t: '夏令营三种班型：北京线下班、上海线下班、线上直播班，可按需选择住宿或走读。', d: '2026暑期AI素养夏令营课程手册', s: '第四章 班型与时间安排' },
+  { t: '教师AI素养培训分L1-L3三级：L1 AI工具赋能（8课时/2天）、L2 AI技能开发（20课时/5天）、L3 AI课程引领（28课时/7天），配套三级九维能力模型认证。', d: '初高中教师AI素养培训体系介绍', s: '第二章/第三章' },
+  { t: '教师培训两种班型：暑期集训班与周末研修班，方便不同时间安排的老师参加。', d: '初高中教师AI素养培训体系介绍', s: '第四章 班型设置与时间安排' },
+  { t: 'OPC平台五大核心功能：AI素养学院、接单吧、智脑工作台、原点社区、大赛与认证，另有面向企业的B端服务。', d: 'OPC超级个体赋能平台产品白皮书', s: '第二章 平台核心功能' },
+  { t: 'OPC平台会员分四档：免费体验、基础、专业、大师，可按需订阅或按量付费。', d: 'OPC超级个体赋能平台产品白皮书', s: '第四章 价格体系与会员权益' },
+];
+(function renderTip() {
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  const tip = TIPS[dayOfYear % TIPS.length];
+  $('tipText').textContent = tip.t;
+  $('tipSrc').textContent = '来源：《' + tip.d + '》·' + tip.s;
+})();
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false, voiceBase = '';
+if (SR) {
+  rec = new SR();
+  rec.lang = 'zh-CN';
+  rec.interimResults = true;
+  rec.continuous = false;
+  micBtn.hidden = false;
+  rec.onresult = (e) => {
+    const txt = [...e.results].map((r) => r[0].transcript).join('');
+    input.value = (voiceBase + txt).slice(0, 600);
+    $('count').textContent = Math.min(input.value.length, 500) + '/500';
+  };
+  rec.onerror = () => { stopVoice(); micBtn.hidden = true; };
+  rec.onend = () => stopVoice();
+}
+function stopVoice() { listening = false; micBtn.classList.remove('on'); }
+micBtn.onclick = () => {
+  if (!rec) return;
+  if (listening) { rec.stop(); return; }
+  try {
+    voiceBase = input.value ? input.value + ' ' : '';
+    rec.start();
+    listening = true; micBtn.classList.add('on');
+  } catch (e) { micBtn.hidden = true; }
+};
+
+sendBtn.onclick = () => send();
+input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+input.addEventListener('input', () => { $('count').textContent = input.value.length + '/500'; });
+document.querySelectorAll('.chip').forEach((c) => (c.onclick = () => send(CHIP_QUESTIONS[c.textContent] || c.textContent)));
+document.querySelectorAll('.topic').forEach((c) => (c.onclick = () => send(c.dataset.q)));
+$('histBtn').onclick = openDrawer;
+$('mask').onclick = closeDrawer;
+$('newBtn').onclick = newSession;
+$('nickBtn').onclick = () => { const v = prompt('请输入您的昵称', user || ''); if (v !== null) { user = v.trim().slice(0, 12); localStorage.setItem('aca_user', user); refreshWho(); } };
+
+refreshWho();
+newSession();
+</script>
+</body>
+</html>
