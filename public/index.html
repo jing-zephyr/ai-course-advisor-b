@@ -86,17 +86,114 @@
     .chips { flex-wrap: nowrap; overflow-x: auto; }
     .topic b { font-size: 12.5px; }
     .topic i { font-size: 10.5px; }
+    .gate-card { padding: 20px 16px; }
+    .entry-grid { grid-template-columns: 1fr; }
+    .admin-panel { width: 92vw; }
   }
+  /* —— 登录门禁 —— */
+  .gate { position: fixed; inset: 0; z-index: 30; background: linear-gradient(160deg, #eef3fd 0%, #f7f9fe 55%, #fdf6ec 100%); display: flex; align-items: center; justify-content: center; padding: 18px; overflow-y: auto; }
+  .gate[hidden] { display: none; }
+  .gate-card { width: 100%; max-width: 560px; background: var(--card); border: 1px solid var(--border); border-radius: 22px; box-shadow: 0 12px 40px rgba(50,80,150,.12); padding: 26px 26px 20px; }
+  .gate-logo { font-size: 19px; font-weight: 700; color: var(--blue-dark); text-align: center; }
+  .gate-sub { font-size: 12px; color: var(--muted); text-align: center; margin: 6px 0 18px; line-height: 1.7; }
+  .entry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .entry { border: 1.5px solid var(--border); border-radius: 16px; padding: 16px 14px; text-align: left; cursor: pointer; background: #fdfdff; transition: border-color .15s, box-shadow .15s, transform .15s; }
+  .entry:hover { border-color: #aec2ec; box-shadow: 0 6px 16px rgba(50,80,150,.12); transform: translateY(-1px); }
+  .entry.active { border-color: var(--blue); background: #f4f8ff; }
+  .entry .e-ico { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .entry b { font-size: 14px; color: var(--text); display: block; }
+  .entry i { font-style: normal; font-size: 11px; color: var(--muted); display: block; margin-top: 3px; line-height: 1.6; }
+  .gate-form { margin-top: 14px; display: none; }
+  .gate-form.show { display: block; }
+  .gate-form input { width: 100%; border: 1px solid var(--border); border-radius: 12px; padding: 11px 13px; font-size: 14px; font-family: inherit; outline: none; background: #fdfdff; }
+  .gate-form input:focus { border-color: #8fabe4; box-shadow: 0 0 0 3px rgba(53,99,201,.14); }
+  .gate-form .go { width: 100%; margin-top: 10px; background: var(--blue); color: #fff; border: none; border-radius: 12px; padding: 11px; font-size: 14px; cursor: pointer; }
+  .gate-form .go:hover { background: var(--blue-dark); }
+  .gate-err { font-size: 12px; color: var(--warn); margin-top: 8px; min-height: 16px; text-align: center; }
+  .gate-note { font-size: 10.5px; color: var(--muted); text-align: center; margin-top: 12px; line-height: 1.7; }
+  /* —— 技术观测面板 —— */
+  .admin-panel { width: 430px; }
+  .tabs { display: flex; gap: 6px; padding: 8px 12px 0; }
+  .tab { flex: 1; font-size: 12px; text-align: center; padding: 7px 0; border-radius: 10px 10px 0 0; border: 1px solid var(--border); border-bottom: none; background: #f6f8fd; color: var(--muted); cursor: pointer; }
+  .tab.on { background: var(--card); color: var(--blue-dark); font-weight: 600; }
+  .pane { flex: 1; overflow-y: auto; padding: 12px; border-top: 1px solid var(--border); display: none; }
+  .pane.on { display: block; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .stat { background: linear-gradient(135deg, #f2f6fd, #e9effc); border: 1px solid #d6e0f4; border-radius: 12px; padding: 10px 12px; }
+  .stat b { font-size: 17px; color: var(--blue-dark); display: block; }
+  .stat i { font-style: normal; font-size: 10.5px; color: var(--muted); }
+  .log-item { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 7px; font-size: 11.5px; }
+  .log-item .l1 { display: flex; justify-content: space-between; color: var(--muted); font-size: 10.5px; }
+  .log-item .l2 { color: var(--text); margin-top: 3px; word-break: break-all; }
+  .ztag { font-size: 10px; border-radius: 999px; padding: 1px 8px; }
+  .z-camp { background: #e8f3ea; color: #2e7d46; } .z-teacher { background: #fdf1e3; color: #b06a1a; } .z-platform { background: #e9effc; color: #36508a; } .z-all { background: #f0f0f4; color: #666; }
+  .kb-item { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 7px; }
+  .kb-item .k1 { display: flex; gap: 6px; align-items: center; font-size: 12px; font-weight: 600; color: var(--text); }
+  .kb-item .k2 { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+  .kb-item .k3 { font-size: 10.5px; color: #47609e; margin-top: 3px; }
+  .asess { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 7px; cursor: pointer; }
+  .asess:hover { background: #f6f9ff; }
+  .asess .s1 { font-size: 12px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .asess .s2 { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+  .asess .msgs { display: none; margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 8px; }
+  .asess.open .msgs { display: block; }
+  .asess .m { font-size: 11.5px; margin-bottom: 6px; line-height: 1.6; }
+  .asess .m b { font-size: 10.5px; }
+  /* 回答下方的检索过程回放（仅技术人员可见） */
+  details.trace { margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 6px; }
+  details.trace summary { font-size: 11px; color: var(--blue-dark); cursor: pointer; user-select: none; }
+  .trace-body { font-size: 11px; color: var(--text); margin-top: 6px; line-height: 1.8; }
+  .hit { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .hit .bar { height: 6px; border-radius: 3px; background: linear-gradient(90deg, #3563c9, #d98a2b); flex: 0 0 auto; }
+  .hit .ht { font-size: 10.5px; color: var(--muted); }
+  .role-pill { font-size: 11px; border-radius: 999px; padding: 3px 10px; border: 1px solid #eccfb9; background: #fdf4ec; color: #b06a1a; }
 </style>
 </head>
 <body>
 <header>
   <div class="logo">AI教育中心 · AI课程顾问<small>夏令营 · 教师培训 · OPC平台 —— 课程咨询一站解答</small></div>
   <span class="badge">动态LLM调用｜模型：DeepSeek</span>
+  <span class="role-pill" id="rolePill" hidden></span>
   <div class="spacer"></div>
+  <button class="hbtn" id="adminBtn" type="button" hidden>技术观测</button>
   <button class="hbtn" id="nickBtn" type="button">设置昵称</button>
   <button class="hbtn" id="histBtn" type="button">历史记录</button>
+  <button class="hbtn" id="switchBtn" type="button">切换身份</button>
 </header>
+
+<!-- 登录门禁：用户入口（免密）/ 技术人员入口（口令，服务端校验） -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="gate-logo">AI教育中心 · AI课程顾问</div>
+    <div class="gate-sub">夏令营 · 教师培训 · OPC平台 课程咨询一站解答<br>请选择入口进入</div>
+    <div class="entry-grid">
+      <button class="entry" id="entryUser" type="button">
+        <span class="e-ico" style="background:#e9effc">
+          <svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="8" r="3.6" fill="#3563c9"/><path d="M4.5 20c.8-3.8 3.8-6 7.5-6s6.7 2.2 7.5 6" fill="#3563c9"/></svg>
+        </span>
+        <b>用户入口</b>
+        <i>家长 / 学生 / 教师 / 企业合作方<br>免密进入，直接咨询课程</i>
+      </button>
+      <button class="entry" id="entryAdmin" type="button">
+        <span class="e-ico" style="background:#fdf1e3">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 5h16v11H4z" fill="none" stroke="#d98a2b" stroke-width="1.8" rx="2"/><path d="M8 9l2.5 2.5L8 14M12.5 14H16" stroke="#d98a2b" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 20h6" stroke="#d98a2b" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <b>技术人员入口</b>
+        <i>口令登录，进入技术观测面板<br>检索追踪 · 会话日志 · 知识库状态</i>
+      </button>
+    </div>
+    <div class="gate-form" id="formUser">
+      <input id="nickInput" maxlength="12" placeholder="您的称呼（选填，如：王女士）" />
+      <button class="go" id="goUser" type="button">进入咨询</button>
+    </div>
+    <div class="gate-form" id="formAdmin">
+      <input id="pwdInput" type="password" maxlength="64" placeholder="技术人员口令" />
+      <button class="go" id="goAdmin" type="button">验证并进入</button>
+    </div>
+    <div class="gate-err" id="gateErr"></div>
+    <div class="gate-note">演示级鉴权：口令经服务端 HMAC 签名令牌校验，12 小时过期；<br>课程信息以三份官方素材为准，AI 不作超出资料的承诺。</div>
+  </div>
+</div>
 
 <main id="main"><div class="wrap" id="chat">
   <div class="welcome" id="welcomeCard">
@@ -198,6 +295,29 @@
   </div>
 </aside>
 
+<!-- 技术观测面板（技术人员入口登录后可用） -->
+<aside class="drawer admin-panel" id="adminDrawer">
+  <header><h3>技术观测面板</h3><button class="hbtn" id="adminRefresh" type="button">刷新</button></header>
+  <div class="tabs">
+    <div class="tab on" data-pane="paneTrace">检索追踪</div>
+    <div class="tab" data-pane="paneSess">会话日志</div>
+    <div class="tab" data-pane="paneKb">知识库状态</div>
+  </div>
+  <div class="pane on" id="paneTrace">
+    <div class="stat-grid" id="statGrid"></div>
+    <div class="grp">最近请求（环形缓冲，最新在前）</div>
+    <div id="logList"></div>
+  </div>
+  <div class="pane" id="paneSess">
+    <div class="grp">服务端会话（点击展开消息，仅存摘要）</div>
+    <div id="asessList"></div>
+  </div>
+  <div class="pane" id="paneKb">
+    <div class="grp" id="kbSummary"></div>
+    <div id="kbList"></div>
+  </div>
+</aside>
+
 <script>
 function killBadge() {
   document.querySelectorAll('netlify-badge, [id*="netlify" i], [class*="netlify" i], iframe[src*="netlify" i], script[src*="netlify" i]').forEach((e) => e.remove());
@@ -212,6 +332,143 @@ const chat = $('chat'), input = $('input'), sendBtn = $('sendBtn'), micBtn = $('
 let user = localStorage.getItem('aca_user') || '';
 let sessions = JSON.parse(localStorage.getItem('aca_sessions') || '[]');
 let session = null;
+
+/* —— 双入口登录（演示级鉴权）—— */
+let auth = null;
+try { auth = JSON.parse(localStorage.getItem('aca_auth') || 'null'); } catch {}
+if (auth && Date.now() - (auth.at || 0) > 12 * 3600 * 1000) { auth = null; localStorage.removeItem('aca_auth'); }
+
+const ZNAME = { camp: '夏令营', teacher: '教师培训', platform: 'OPC平台', all: '全库' };
+
+function applyRole() {
+  const isAdmin = auth && auth.role === 'admin';
+  $('adminBtn').hidden = !isAdmin;
+  $('rolePill').hidden = !auth;
+  if (auth) $('rolePill').textContent = isAdmin ? '技术人员' : '用户';
+}
+
+async function doLogin(role, password) {
+  $('gateErr').textContent = '';
+  const res = await fetch('/api/login', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role, password }),
+  });
+  const data = await res.json();
+  if (!res.ok || data.code !== 0) { $('gateErr').textContent = (data && data.message) || '登录失败，请重试'; return false; }
+  auth = { role: data.data.role, token: data.data.token, at: Date.now() };
+  localStorage.setItem('aca_auth', JSON.stringify(auth));
+  return true;
+}
+
+function showGate() {
+  $('gate').hidden = false;
+  $('formUser').classList.remove('show');
+  $('formAdmin').classList.remove('show');
+  $('gateErr').textContent = '';
+}
+function hideGate() { $('gate').hidden = true; applyRole(); }
+
+$('entryUser').onclick = () => { $('entryUser').classList.add('active'); $('entryAdmin').classList.remove('active'); $('formUser').classList.add('show'); $('formAdmin').classList.remove('show'); $('nickInput').focus(); };
+$('entryAdmin').onclick = () => { $('entryAdmin').classList.add('active'); $('entryUser').classList.remove('active'); $('formAdmin').classList.add('show'); $('formUser').classList.remove('show'); $('pwdInput').focus(); };
+$('goUser').onclick = async () => {
+  const nick = $('nickInput').value.trim().slice(0, 12);
+  if (await doLogin('user')) {
+    if (nick) { user = nick; localStorage.setItem('aca_user', user); refreshWho(); }
+    hideGate();
+  }
+};
+$('goAdmin').onclick = async () => { if (await doLogin('admin', $('pwdInput').value)) hideGate(); };
+$('pwdInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('goAdmin').click(); });
+$('nickInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('goUser').click(); });
+$('switchBtn').onclick = showGate;
+
+/* —— 技术观测面板 —— */
+function authHeaders() { return auth && auth.token ? { Authorization: 'Bearer ' + auth.token } : {}; }
+async function adminGet(action) {
+  const res = await fetch('/api/admin?action=' + action, { headers: authHeaders() });
+  const data = await res.json();
+  if (!res.ok || data.code !== 0) throw new Error((data && data.message) || '加载失败');
+  return data.data;
+}
+const ZONE_CLS = (z) => 'ztag z-' + (ZNAME[z] ? z : 'all');
+function fmtTime(ts) { const d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0'); }
+
+async function loadTracePane() {
+  const [stats, logs] = await Promise.all([adminGet('stats'), adminGet('logs')]);
+  $('statGrid').innerHTML =
+    '<div class="stat"><b>' + stats.kb.blocks + '</b><i>知识块（' + (stats.kb.docs || 3) + ' 份素材）</i></div>' +
+    '<div class="stat"><b>' + stats.sessions.total + '</b><i>服务端会话 / ' + stats.sessions.messages + ' 条消息</i></div>' +
+    '<div class="stat"><b>' + (stats.logs.okRate === null ? '—' : stats.logs.okRate + '%') + '</b><i>请求成功率（近 ' + stats.logs.kept + ' 条）</i></div>' +
+    '<div class="stat"><b style="font-size:13px">' + esc(stats.model) + '</b><i>当前 LLM 模型</i></div>';
+  $('logList').innerHTML = logs.logs.length
+    ? logs.logs.map((l) =>
+        '<div class="log-item"><div class="l1"><span><span class="' + ZONE_CLS(l.zone) + '">' + (ZNAME[l.zone] || l.zone) + '</span> ' +
+        (l.ok ? '<span style="color:#2e7d46">成功</span>' : '<span style="color:#b0503c">失败</span>') +
+        '</span><span>' + fmtTime(l.time) + ' · ' + l.ms + 'ms</span></div><div class="l2">' + esc(l.msg) + '</div></div>').join('')
+    : '<div class="grp">暂无请求日志</div>';
+}
+
+async function loadSessPane() {
+  const d = await adminGet('sessions');
+  $('asessList').innerHTML = d.sessions.length
+    ? d.sessions.map((s) =>
+        '<div class="asess" data-sid="' + esc(s.sessionId) + '"><div class="s1">' + esc(s.preview || '(空会话)') + '</div>' +
+        '<div class="s2">' + esc(s.sessionId) + ' · ' + s.count + ' 条 · ' + fmtTime(s.updatedAt || s.createdAt) + '</div><div class="msgs"></div></div>').join('')
+    : '<div class="grp">暂无服务端会话</div>';
+  $('asessList').querySelectorAll('.asess').forEach((el) => {
+    el.onclick = async () => {
+      if (el.classList.contains('open')) { el.classList.remove('open'); return; }
+      const box = el.querySelector('.msgs');
+      if (!box.dataset.loaded) {
+        box.innerHTML = '<div class="m">加载中…</div>';
+        try {
+          const r = await fetch('/api/history?sessionId=' + encodeURIComponent(el.dataset.sid));
+          const j = await r.json();
+          const ms = (j.data && j.data.messages) || [];
+          box.innerHTML = ms.map((m) => '<div class="m"><b style="color:' + (m.role === 'user' ? '#36508a' : '#b06a1a') + '">' + (m.role === 'user' ? '用户' : 'AI') + '：</b>' + esc(m.content.slice(0, 160)) + '</div>').join('') || '<div class="m">无消息</div>';
+        } catch { box.innerHTML = '<div class="m">加载失败</div>'; }
+        box.dataset.loaded = '1';
+      }
+      el.classList.add('open');
+    };
+  });
+}
+
+async function loadKbPane() {
+  const d = await adminGet('knowledge');
+  const groups = {};
+  d.blocks.forEach((b) => { (groups[b.zone] = groups[b.zone] || []).push(b); });
+  $('kbSummary').innerHTML = '共 ' + d.blocks.length + ' 块｜' + Object.entries(groups).map(([z, arr]) => '<span class="' + ZONE_CLS(z) + '">' + ZNAME[z] + ' ' + arr.length + '</span>').join(' ');
+  $('kbList').innerHTML = d.blocks.map((b) =>
+    '<div class="kb-item"><div class="k1"><span class="' + ZONE_CLS(b.zone) + '">' + esc(b.id) + '</span>' + esc(b.title) + '</div>' +
+    '<div class="k2">《' + esc(b.doc.replace(/^素材[ABC]：/, '')) + '》·' + esc(b.chapter) + '</div>' +
+    '<div class="k3">关键词：' + esc((b.keywords || []).join(' / ')) + '</div></div>').join('');
+}
+
+let adminLoaded = false;
+async function openAdmin() {
+  $('adminDrawer').classList.add('open'); $('mask').classList.add('open');
+  try { await Promise.all([loadTracePane(), loadSessPane(), loadKbPane()]); adminLoaded = true; }
+  catch (e) { $('logList').innerHTML = '<div class="grp">' + esc(e.message) + '</div>'; }
+}
+$('adminBtn').onclick = openAdmin;
+$('adminRefresh').onclick = () => { adminLoaded = false; openAdmin(); };
+document.querySelectorAll('.tab').forEach((t) => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === t));
+    document.querySelectorAll('.admin-panel .pane').forEach((p) => p.classList.toggle('on', p.id === t.dataset.pane));
+  };
+});
+
+function traceHtml(tr) {
+  const max = Math.max(...tr.hits.map((h) => h.score), 1);
+  return '<details class="trace"><summary>本次检索过程（技术人员可见）</summary><div class="trace-body">' +
+    '路由分区：<span class="' + ZONE_CLS(tr.zone) + '">' + (ZNAME[tr.zone] || tr.zone) + '</span>（区池 ' + tr.poolSize + ' 块）　身份识别：' + esc(tr.roleHint || '通用') + '<br>' +
+    '检索词：' + esc(tr.terms.join('、') || '—') + '<br>' +
+    tr.hits.map((h) => '<div class="hit"><span class="' + ZONE_CLS(h.zone) + '">' + esc(h.id) + '</span><div class="bar" style="width:' + Math.round((h.score / max) * 90) + 'px"></div><span class="ht">' + esc(h.title) + ' · ' + h.score + '分</span></div>').join('') +
+    '<div style="margin-top:4px;color:#7d87a0">模型 ' + esc(tr.model) + ' · 端到端 ' + tr.totalMs + 'ms</div></div></details>';
+}
+
 
 function save() { localStorage.setItem('aca_sessions', JSON.stringify(sessions.slice(-30))); }
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -234,7 +491,7 @@ function renderSession() {
   main.scrollTop = main.scrollHeight;
 }
 
-function addBubble(role, content, sources, animate) {
+function addBubble(role, content, sources, animate, trace) {
   const div = document.createElement('div');
   div.className = 'msg ' + (role === 'user' ? 'user' : role === 'error' ? 'error' : 'bot');
   const b = document.createElement('div');
@@ -246,6 +503,7 @@ function addBubble(role, content, sources, animate) {
     sources.forEach((x) => { const c = document.createElement('span'); c.className = 'src'; c.textContent = '来源：《' + x.doc.replace(/^素材[ABC]：/, '') + '》·' + x.chapter; s.appendChild(c); });
     b.appendChild(s);
   }
+  if (trace) { const t = document.createElement('div'); t.innerHTML = traceHtml(trace); b.appendChild(t.firstChild); }
   chat.appendChild(div);
   main.scrollTop = main.scrollHeight;
   return div;
@@ -290,11 +548,12 @@ async function send(text) {
   setLoading(true);
   const history = session.messages.slice(-9, -1).map((m) => ({ role: m.role, content: m.content }));
   try {
-    const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg, history, sessionId: session.id }) });
+    const headers = { 'Content-Type': 'application/json', ...authHeaders() };
+    const res = await fetch('/api/chat', { method: 'POST', headers, body: JSON.stringify({ message: msg, history, sessionId: session.id }) });
     const data = await res.json();
     setLoading(false);
     if (!res.ok || data.code !== 0) { addError((data && data.message) || '服务繁忙，请稍后重试'); return; }
-    addBubble('bot', data.data.reply, data.data.sources);
+    addBubble('bot', data.data.reply, data.data.sources, false, data.data.trace);
     session.messages.push({ role: 'assistant', content: data.data.reply, sources: data.data.sources });
     save();
   } catch (e) {
@@ -391,6 +650,8 @@ $('nickBtn').onclick = () => { const v = prompt('请输入您的昵称', user ||
 
 refreshWho();
 newSession();
+// 已登录（12h 内）直接进入；否则停留在登录门禁
+if (auth) hideGate(); else showGate();
 </script>
 </body>
 </html>

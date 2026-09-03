@@ -10,7 +10,22 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const { handleChat, handleHistory } = require('./lib/handler');
+const { handleChat, handleHistory, handleLogin, handleAdmin } = require('./lib/handler');
+const { tokenFrom } = require('./lib/auth');
+
+function readBody(req) {
+  return new Promise((resolve) => {
+    let raw = '';
+    req.on('data', (c) => (raw += c));
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(raw || '{}'));
+      } catch {
+        resolve({});
+      }
+    });
+  });
+}
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
@@ -22,16 +37,20 @@ function sendJson(res, status, payload) {
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://localhost');
   if (u.pathname === '/api/chat' && req.method === 'POST') {
-    let raw = '';
-    req.on('data', (c) => (raw += c));
-    req.on('end', async () => {
-      let body = {};
-      try {
-        body = JSON.parse(raw || '{}');
-      } catch {}
-      const { status, body: payload } = await handleChat(body);
-      sendJson(res, status, payload);
-    });
+    const body = await readBody(req);
+    const { status, body: payload } = await handleChat(body, tokenFrom(req.headers));
+    sendJson(res, status, payload);
+    return;
+  }
+  if (u.pathname === '/api/login' && req.method === 'POST') {
+    const body = await readBody(req);
+    const { status, body: payload } = handleLogin(body);
+    sendJson(res, status, payload);
+    return;
+  }
+  if (u.pathname === '/api/admin' && req.method === 'GET') {
+    const { status, body: payload } = handleAdmin(u.searchParams.get('action') || 'stats', tokenFrom(req.headers));
+    sendJson(res, status, payload);
     return;
   }
   if (u.pathname === '/api/history' && req.method === 'GET') {

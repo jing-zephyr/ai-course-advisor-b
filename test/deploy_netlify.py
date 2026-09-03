@@ -27,7 +27,8 @@ def api(method, url, data=None, headers=None):
         try:
             req = urllib.request.Request(url, data=data, method=method, headers=h)
             with urllib.request.urlopen(req, timeout=90) as r:
-                return json.loads(r.read().decode('utf-8'))
+                raw = r.read().decode('utf-8')
+                return json.loads(raw) if raw.strip() else {}
         except urllib.error.HTTPError as e:
             if e.code < 500:
                 raise
@@ -58,22 +59,27 @@ else:
         f.write(SITE_ID)
     print('site:', SITE_ID, site.get('ssl_url'))
 
-# 2. 注入环境变量（数组格式；免费账号不带 scopes；已存在则跳过）
+# 2. 注入环境变量（数组格式；免费账号不带 scopes；逐key upsert：存在则 PUT 更新，保证新增 key 不被整体 409 跳过）
 acct = api('GET', 'https://api.netlify.com/api/v1/accounts')[0]['id']
-payload = [{'key': k, 'values': [{'value': v, 'context': 'all'}]} for k, v in env_vars().items()]
-try:
-    api('POST', f'https://api.netlify.com/api/v1/accounts/{acct}/env?site_id={SITE_ID}',
-        data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json'})
-    print('env set:', [p['key'] for p in payload])
-except urllib.error.HTTPError as e:
-    if e.code in (409, 422):
-        print('env already exists, skip')
-    else:
-        print('env failed:', e.read().decode()[:300]); sys.exit(1)
+for k, v in env_vars().items():
+    payload = [{'key': k, 'values': [{'value': v, 'context': 'all'}]}]
+    try:
+        api('POST', f'https://api.netlify.com/api/v1/accounts/{acct}/env?site_id={SITE_ID}',
+            data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json'})
+        print('env set:', k)
+    except urllib.error.HTTPError as e:
+        if e.code in (409, 422):
+            # 该账号 PATCH/PUT 更新均被拒（422/400），改为 DELETE + POST 重建
+            api('DELETE', f'https://api.netlify.com/api/v1/accounts/{acct}/env/{k}?site_id={SITE_ID}')
+            api('POST', f'https://api.netlify.com/api/v1/accounts/{acct}/env?site_id={SITE_ID}',
+                data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json'})
+            print('env rebuilt:', k)
+        else:
+            print('env failed:', k, e.read().decode()[:300]); sys.exit(1)
 
-# 3. 每个函数独立打包（入口文件名即函数名，sha 唯一，避免同 sha 二次上传 500）
-LIB_FILES = ['netlify/functions/chat.js', 'netlify/functions/history.js',
-             'lib/handler.js', 'lib/prompt.js', 'lib/retrieval.js', 'lib/store.js',
+# 3. 单函数打包：/api/* 统一由 api.js 承载（多函数容器隔离会导致会话跨函数丢失）
+LIB_FILES = ['netlify/functions/api.js',
+             'lib/handler.js', 'lib/prompt.js', 'lib/retrieval.js', 'lib/store.js', 'lib/auth.js',
              'data/knowledge.json']
 
 
@@ -86,7 +92,7 @@ def build_bundle(name):
     return buf.getvalue()
 
 
-bundles = {name: build_bundle(name) for name in ['chat', 'history']}
+bundles = {name: build_bundle(name) for name in ['api']}
 fn_shas = {name: hashlib.sha256(b).hexdigest() for name, b in bundles.items()}
 
 # 4. 文件清单（sha1）；_redirects 一并上传，否则 /api/* 重定向不生效
@@ -115,7 +121,7 @@ for sha in dep.get('required', []):
     print('uploaded file:', rel)
 
 if dep.get('required_functions'):
-    for name in ['chat', 'history']:
+    for name in ['api']:
         api('PUT', f'https://api.netlify.com/api/v1/deploys/{dep_id}/functions/{name}?runtime=js',
             data=bundles[name], headers={'Content-Type': 'application/octet-stream'})
         print('uploaded function:', name)

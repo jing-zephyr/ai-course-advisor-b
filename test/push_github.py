@@ -11,15 +11,17 @@ import urllib.error
 TOKEN = open(r'C:\Users\T\Desktop\20260822OPC order\github-trae.txt', encoding='utf-8').read().strip()
 APP = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO = 'ai-course-advisor-b'
-MSG = '补充：公网部署（Netlify _redirects 路由）、部署/测试脚本与真机测试输出存档；README 加演示链接'
+MSG = '增强：双入口登录 + 技术观测面板；Serverless 函数合并为统一 api 入口（修复容器隔离导致的会话丢失），公网31例测试全过'
 
 FILES = ['public/index.html', 'public/_redirects', 'api/chat.js', 'api/history.js',
-         'lib/handler.js', 'lib/prompt.js', 'lib/retrieval.js', 'lib/store.js',
-         'data/knowledge.json', 'netlify/functions/chat.js', 'netlify/functions/history.js',
+         'api/login.js', 'api/admin.js',
+         'lib/handler.js', 'lib/prompt.js', 'lib/retrieval.js', 'lib/store.js', 'lib/auth.js',
+         'data/knowledge.json', 'netlify/functions/api.js', 'netlify/functions/chat.js',
+         'netlify/functions/history.js', 'netlify/functions/login.js', 'netlify/functions/admin.js',
          'server.js', 'package.json', 'netlify.toml', '.env.example', '.gitignore', 'README.md',
          'test/smoke.js', 'test/live_test.py', 'test/live_test_output.txt',
          'test/deploy_netlify.py', 'test/deploy_vercel.py', 'test/export_kb_view.py', 'test/push_github.py']
-NEVER = ['.env', 'data/sessions.json']  # 明文密钥与运行时数据，禁止外传
+NEVER = ['.env', 'data/sessions.json', 'data/logs.json']  # 明文密钥与运行时数据，禁止外传
 
 
 import http.client

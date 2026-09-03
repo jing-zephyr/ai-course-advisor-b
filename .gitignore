@@ -2,6 +2,7 @@ node_modules/
 .env
 .env.local
 data/sessions.json
+data/logs.json
 .netlify/
 .vercel/
 .xdg/

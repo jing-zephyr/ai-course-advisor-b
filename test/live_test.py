@@ -24,22 +24,56 @@ def chat(msg, history=None, sid=None, raw_body=None):
     req = urllib.request.Request(BASE + '/api/chat', data=body,
                                  headers={'Content-Type': 'application/json; charset=utf-8'})
     try:
-        with urllib.request.urlopen(req, timeout=90) as r:
+        with _open(req, 90) as r:
             return r.status, json.loads(r.read().decode('utf-8'))
     except urllib.error.HTTPError as e:
         return e.code, json.loads(e.read().decode('utf-8'))
     except Exception as e:
         return -1, {'error': str(e)}
 
-def get(path):
+def _open(req, timeout):
+    # 本地网络偶发断连（RemoteDisconnected/URLError），传输层错误重试一次；HTTP 错误与断言语义不变
+    for attempt in range(2):
+        try:
+            return urllib.request.urlopen(req, timeout=timeout)
+        except urllib.error.HTTPError:
+            raise
+        except Exception:
+            if attempt == 1:
+                raise
+            time.sleep(2)
+
+def get(path, token=None):
     req = urllib.request.Request(BASE + path)
+    if token:
+        req.add_header('Authorization', 'Bearer ' + token)
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
+        with _open(req, 30) as r:
             return r.status, r.read().decode('utf-8')
     except urllib.error.HTTPError as e:
         return e.code, e.read().decode('utf-8')
     except Exception as e:
         return -1, str(e)
+
+def post_json(path, obj):
+    req = urllib.request.Request(BASE + path, data=json.dumps(obj, ensure_ascii=False).encode('utf-8'),
+                                 headers={'Content-Type': 'application/json; charset=utf-8'})
+    try:
+        with _open(req, 30) as r:
+            return r.status, json.loads(r.read().decode('utf-8'))
+    except urllib.error.HTTPError as e:
+        return e.code, json.loads(e.read().decode('utf-8'))
+    except Exception as e:
+        return -1, {'error': str(e)}
+
+# 从本地 .env 读管理员口令（仅测试用，不入库）
+APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ADMIN_PW = ''
+env_file = os.path.join(APP_DIR, '.env')
+if os.path.exists(env_file):
+    for line in open(env_file, encoding='utf-8'):
+        if line.startswith('ADMIN_PASSWORD='):
+            ADMIN_PW = line.split('=', 1)[1].strip()
 
 w('=' * 30, 'AI课程顾问 真机测试', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'BASE =', BASE)
 
@@ -83,6 +117,48 @@ record('F8', '功能：动态Prompt（家长身份+学段注入）', '我孩子�
 
 s, d = get('/api/history')
 record('F9', '功能：错误返回格式统一', 'GET /api/history（缺参数）', '{code:400,message:...}', d[:60], s == 400 and 'code' in json.loads(d) and 'message' in json.loads(d))
+
+# ---------- 功能测试 F10-F14：双入口登录与观测接口鉴权 ----------
+s, d = post_json('/api/login', {'role': 'user'})
+user_tok = d.get('data', {}).get('token', '')
+ok = s == 200 and d.get('code') == 0 and user_tok.startswith('aca.user.')
+record('F10', '功能：用户入口免密登录签发令牌', 'POST /api/login {role:user}', '200 + aca.user. 前缀令牌', f'HTTP {s} token={user_tok[:22]}...', ok)
+
+s, d = post_json('/api/login', {'role': 'admin', 'password': 'definitely-wrong-pw'})
+record('F11', '功能：技术入口错误口令拒绝', 'POST /api/login 错误口令', 'HTTP401 + 口令错误提示', f"HTTP {s} {d.get('message','')}", s == 401 and d.get('code') == 401)
+
+admin_tok = ''
+if ADMIN_PW:
+    s, d = post_json('/api/login', {'role': 'admin', 'password': ADMIN_PW})
+    admin_tok = d.get('data', {}).get('token', '')
+    ok = s == 200 and admin_tok.startswith('aca.admin.')
+    record('F12', '功能：技术入口正确口令签发admin令牌', 'POST /api/login 正确口令', '200 + aca.admin. 前缀令牌', f'HTTP {s}', ok)
+else:
+    record('F12', '功能：技术入口正确口令签发admin令牌', '(本地 .env 未配置 ADMIN_PASSWORD)', '200 + admin令牌', '跳过', None)
+
+s, d = get('/api/admin?action=stats')
+record('F13', '功能：未授权访问管理接口被拒', 'GET /api/admin（无令牌）', 'HTTP401 + 未授权提示', f'HTTP {s}', s == 401 and json.loads(d).get('code') == 401)
+
+if admin_tok:
+    s, d = get('/api/admin?action=stats', token=admin_tok)
+    j = json.loads(d)
+    ok = s == 200 and j.get('data', {}).get('kb', {}).get('blocks', 0) >= 30
+    record('F14', '功能：admin令牌访问观测统计', 'GET /api/admin?action=stats（带令牌）', '200 + 知识块/会话/成功率统计', f"HTTP {s} blocks={j.get('data',{}).get('kb',{}).get('blocks')}", ok)
+
+    body = json.dumps({'message': '夏令营费用多少？', 'history': [], 'sessionId': 't-f14'}, ensure_ascii=False).encode('utf-8')
+    req = urllib.request.Request(BASE + '/api/chat', data=body,
+                                 headers={'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer ' + admin_tok})
+    try:
+        with urllib.request.urlopen(req, timeout=90) as r:
+            d = json.loads(r.read().decode('utf-8'))
+        tr = d.get('data', {}).get('trace')
+        ok = tr and tr.get('zone') == 'camp' and len(tr.get('hits', [])) > 0 and 'score' in tr['hits'][0]
+        record('F15', '功能：admin对话返回检索过程trace', '带admin令牌提问夏令营费用', 'trace含zone=camp、命中块得分、检索词', f"zone={tr.get('zone') if tr else None} hits={len(tr.get('hits',[])) if tr else 0}", bool(ok))
+    except Exception as e:
+        record('F15', '功能：admin对话返回检索过程trace', '带admin令牌提问', 'trace齐全', str(e)[:50], False)
+else:
+    record('F14', '功能：admin令牌访问观测统计', '(无admin令牌)', '200', '跳过', None)
+    record('F15', '功能：admin对话返回检索过程trace', '(无admin令牌)', 'trace齐全', '跳过', None)
 
 # ---------- RAG 专项 R1-R7 ----------
 s, d = chat('夏令营线下班多少钱？早鸟价呢？', sid='t-r1')
@@ -141,6 +217,9 @@ record('FE4', '前端：移动端适配标记', '检查viewport/媒体查询/16p
 
 ok = '100dvh' in html and 'SpeechRecognition' in html
 record('FE5', '前端：软键盘适配(dvh)+语音输入降级', '检查100dvh与SR降级', '存在', '存在' if ok else '缺失', ok)
+
+ok = '用户入口' in html and '技术人员入口' in html and 'gate' in html and 'adminDrawer' in html and '检索追踪' in html and '知识库状态' in html
+record('FE6', '前端：登录门禁双入口+技术观测面板', '检查gate双入口与admin面板DOM', '用户/技术人员双入口、三页签面板均存在', '全部存在' if ok else '缺失', ok)
 
 # ---------- 部署测试 D1-D3 ----------
 s, html = get('/')

@@ -1,6 +1,8 @@
+process.env.ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'smoke-test-admin-pw';
 const kb = require('../data/knowledge.json');
 const { retrieve, route } = require('../lib/retrieval');
-const { handleChat, handleHistory, MSG } = require('../lib/handler');
+const { handleChat, handleHistory, handleLogin, handleAdmin, MSG } = require('../lib/handler');
+const { verify } = require('../lib/auth');
 
 let pass = 0, fail = 0;
 function check(name, cond) {
@@ -29,6 +31,25 @@ const r3 = retrieve('平台有哪些会员档位？');
 check('会员档位命中C8', r3.chunks.some((c) => c.id === 'C8'));
 const r4 = retrieve('怎么报名夏令营？');
 check('报名问题命中A10', r4.chunks.some((c) => c.id === 'A10'));
+check('检索返回trace（zone/hits/score齐全）', r4.trace && r4.trace.zone === 'camp' && r4.trace.hits.length > 0 && typeof r4.trace.hits[0].score === 'number');
+
+// —— 鉴权与观测接口 ——
+const l1 = handleLogin({ role: 'user' });
+check('用户入口免密签发令牌', l1.status === 200 && /^aca\.user\.\d+\.[0-9a-f]{32}$/.test(l1.body.data.token));
+check('用户令牌可校验', verify(l1.body.data.token) && verify(l1.body.data.token).role === 'user');
+const l2 = handleLogin({ role: 'admin', password: 'wrong-pw' });
+check('技术入口错误口令返回401', l2.status === 401 && l2.body.code === 401);
+const l3 = handleLogin({ role: 'admin', password: 'smoke-test-admin-pw' });
+check('技术入口正确口令签发admin令牌', l3.status === 200 && /^aca\.admin\./.test(l3.body.data.token));
+check('篡改令牌被拒绝', verify(l1.body.data.token.replace(/.$/, '0')) === null);
+const a1 = handleAdmin('stats', null);
+check('未带令牌访问管理接口返回401', a1.status === 401 && a1.body.code === 401);
+const a2 = handleAdmin('stats', { role: 'user' });
+check('user角色访问管理接口返回401', a2.status === 401);
+const a3 = handleAdmin('stats', { role: 'admin' });
+check('admin令牌访问stats返回知识库/会话统计', a3.status === 200 && a3.body.data.kb.blocks >= 30);
+const a4 = handleAdmin('knowledge', { role: 'admin' });
+check('admin可拉取知识库清单', a4.status === 200 && a4.body.data.blocks.length === kb.blocks.length);
 
 (async () => {
   const g1 = await handleChat({ message: '' });
@@ -38,6 +59,10 @@ check('报名问题命中A10', r4.chunks.some((c) => c.id === 'A10'));
   const g3 = await handleChat({ message: '夏令营班型有哪些', sessionId: 'smoke-test' });
   if (process.env.LLM_API_KEY) {
     check('有Key时正常应答且带source与会话ID', g3.status === 200 && g3.body.code === 0 && g3.body.data.reply && g3.body.data.sessionId === 'smoke-test');
+    const g4 = await handleChat({ message: '夏令营费用多少', sessionId: 'smoke-test' }, { role: 'admin' });
+    check('admin角色对话返回检索trace', g4.status === 200 && g4.body.data.trace && g4.body.data.trace.hits.length > 0);
+    const g5 = await handleChat({ message: '夏令营费用多少', sessionId: 'smoke-test' });
+    check('普通用户对话不返回trace', g5.status === 200 && !g5.body.data.trace);
   } else {
     check('无Key时优雅降级', g3.status === 503 && g3.body.code === 503 && g3.body.message === MSG.busy);
   }

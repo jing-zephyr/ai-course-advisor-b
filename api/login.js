@@ -1,5 +1,4 @@
-const { handleChat } = require('../lib/handler');
-const { tokenFrom } = require('../lib/auth');
+const { handleLogin } = require('../lib/handler');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -14,6 +13,6 @@ module.exports = async (req, res) => {
       body = {};
     }
   }
-  const { status, body: payload } = await handleChat(body || {}, tokenFrom(req.headers));
+  const { status, body: payload } = handleLogin(body || {});
   res.status(status).json(payload);
 };
