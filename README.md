@@ -1,6 +1,8 @@
 # AI课程顾问 Web应用
 
 > OPC接单吧实战能力大赛 · 软件与智能体赛道 · B级测试单交付物
+>
+> 公网演示：https://ai-course-advisor-b445432.netlify.app （Netlify 生产环境，可直接对话实测）
 
 ## 一、项目简介
 

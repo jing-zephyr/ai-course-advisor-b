@@ -1,0 +1,2 @@
+/api/chat /.netlify/functions/chat 200
+/api/history /.netlify/functions/history 200
