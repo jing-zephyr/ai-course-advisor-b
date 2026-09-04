@@ -13,7 +13,7 @@ TOKEN = open(r'C:\Users\T\Desktop\20260822OPC order\github-trae.txt', encoding='
 APP = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.dirname(os.path.dirname(APP))  # 测试单根目录（03_交付文档/01_知识库所在层）
 REPO = 'ai-course-advisor-b'
-MSG = '四入口角色登录（用户/教师/企业免密+管理口令）+ 角色化主题与提示词三层注入 + 移动端紧凑适配（入口卡减半/表单吸附/防iOS缩放）；37例真机测试公网全量复测通过'
+MSG = '文档修正：AI辅助标注/测试记录/README 明确双AI分工（Trae work 生成 + DeepSeek Harness 交叉校验），移除人工校验相关不实表述'
 
 FILES = ['public/index.html', 'public/_redirects', 'api/chat.js', 'api/history.js',
          'api/login.js', 'api/admin.js',
