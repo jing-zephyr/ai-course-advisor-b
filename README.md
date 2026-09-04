@@ -23,7 +23,7 @@
 
 ```bash
 # 1. 进入目录
-cd 03_系统/app
+cd 02_系统/app
 # 2. 配置密钥：复制 .env.example 为 .env，填入 LLM_API_KEY
 cp .env.example .env   # Windows: copy .env.example .env
 # 3. 启动（无需 npm install，无任何依赖）

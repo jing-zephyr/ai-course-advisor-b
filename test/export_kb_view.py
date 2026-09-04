@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# 把 knowledge.json 导出为可阅读的 Markdown 知识库视图（02_知识库归档用）
+# 把 knowledge.json 导出为可阅读的 Markdown 知识库视图（01_知识库归档用）
 import json
 import os
 
@@ -13,7 +13,7 @@ ZONE_NAME = {'camp': '素材A 夏令营（2026暑期AI素养夏令营课程手�
              'platform': '素材C OPC平台（OPC超级个体赋能平台产品白皮书）'}
 
 lines = ['# 结构化知识库（共 %d 块）' % len(blocks), '',
-         '> 本文件由 `03_系统/app/data/knowledge.json` 自动导出（test/export_kb_view.py），',
+         '> 本文件由 `02_系统/app/data/knowledge.json` 自动导出（test/export_kb_view.py），',
          '> 用于评审查阅知识库结构；系统运行时以 JSON 为准，两者内容一致。', '',
          '## 构建方法', '',
          '1. 三份素材 DOCX → 纯文本（保留章节标题层级），原文不改写；',
@@ -32,7 +32,7 @@ for b in blocks:
               '- 关键词：%s' % '、'.join(b['keywords']), '',
               b['content'], '']
 
-out_path = os.path.join(OUT, '02_知识库', '结构化知识库_36块.md')
+out_path = os.path.join(OUT, '01_知识库', '结构化知识库_36块.md')
 with open(out_path, 'w', encoding='utf-8') as f:
     f.write('\n'.join(lines))
 print('written:', out_path, os.path.getsize(out_path), 'bytes')

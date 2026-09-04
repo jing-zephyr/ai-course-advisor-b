@@ -11,7 +11,7 @@ import urllib.error
 
 TOKEN = open(r'C:\Users\T\Desktop\20260822OPC order\github-trae.txt', encoding='utf-8').read().strip()
 APP = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ROOT = os.path.dirname(os.path.dirname(APP))  # 测试单根目录（04_交付文档/02_知识库所在层）
+ROOT = os.path.dirname(os.path.dirname(APP))  # 测试单根目录（03_交付文档/01_知识库所在层）
 REPO = 'ai-course-advisor-b'
 MSG = '四入口角色登录（用户/教师/企业免密+管理口令）+ 角色化主题与提示词三层注入 + 移动端紧凑适配（入口卡减半/表单吸附/防iOS缩放）；37例真机测试公网全量复测通过'
 
@@ -26,11 +26,11 @@ FILES = ['public/index.html', 'public/_redirects', 'api/chat.js', 'api/history.j
          'test/build_submit_zip.py', 'test/check_sessions_privacy.py', 'test/push_github.py']
 # 交付文档（本地绝对路径 → 仓库路径）：架构说明/测试记录/AI辅助标注/演示说明/知识库视图
 DOCS = [
-    (r'04_交付文档\系统架构说明.md', 'docs/系统架构说明.md'),
-    (r'04_交付文档\测试记录表.md', 'docs/测试记录表.md'),
-    (r'04_交付文档\AI辅助开发标注.md', 'docs/AI辅助开发标注.md'),
-    (r'04_交付文档\演示说明.md', 'docs/演示说明.md'),
-    (r'02_知识库\结构化知识库_36块.md', 'docs/结构化知识库_36块.md'),
+    (r'03_交付文档\系统架构说明.md', 'docs/系统架构说明.md'),
+    (r'03_交付文档\测试记录表.md', 'docs/测试记录表.md'),
+    (r'03_交付文档\AI辅助开发标注.md', 'docs/AI辅助开发标注.md'),
+    (r'03_交付文档\演示说明.md', 'docs/演示说明.md'),
+    (r'01_知识库\结构化知识库_36块.md', 'docs/结构化知识库_36块.md'),
 ]
 NEVER = ['.env', 'data/sessions.json', 'data/logs.json']  # 明文密钥与运行时数据，禁止外传
 SECRET_PATTERNS = [b'nfp_', b'ghp_', b'github_pat_', b'sk-']  # 常见令牌前缀，命中即中止
