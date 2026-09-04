@@ -10,7 +10,7 @@ TARGETS = [
     r'C:\Users\T\Desktop\20260822OPC order\软件与智能体赛道B级测试单_AI课程顾问_交付\软件与智能体赛道B级测试单_交付附件包.zip',
 ]
 EXCLUDE_FILES = {'.env', '.netlify_site_id'}
-EXCLUDE_DIRS = {'__pycache__'}
+EXCLUDE_DIRS = {'__pycache__', '_K3交付版'}  # _K3交付版是验证暂存区，内容均来自五个正式目录，不重复入包
 
 
 def add(zf, root):
