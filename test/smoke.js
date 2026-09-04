@@ -1,3 +1,13 @@
+// 与 server.js 同款 .env 装载：配置过密钥时联网断言一并执行，未配置则自动跳过
+const fs = require('fs');
+const path = require('path');
+const envPath = path.join(__dirname, '..', '.env');
+if (fs.existsSync(envPath)) {
+  for (const line of fs.readFileSync(envPath, 'utf-8').split('\n')) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.+)\s*$/);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2];
+  }
+}
 process.env.ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'smoke-test-admin-pw';
 const kb = require('../data/knowledge.json');
 const { retrieve, route } = require('../lib/retrieval');
@@ -39,9 +49,9 @@ check('用户入口免密签发令牌', l1.status === 200 && /^aca\.user\.\d+\.[
 check('用户令牌可校验', verify(l1.body.data.token) && verify(l1.body.data.token).role === 'user');
 const l2 = handleLogin({ role: 'admin', password: 'wrong-pw' });
 check('技术入口错误口令返回401', l2.status === 401 && l2.body.code === 401);
-const l3 = handleLogin({ role: 'admin', password: 'smoke-test-admin-pw' });
+const l3 = handleLogin({ role: 'admin', password: process.env.ADMIN_PASSWORD });
 check('技术入口正确口令签发admin令牌', l3.status === 200 && /^aca\.admin\./.test(l3.body.data.token));
-check('篡改令牌被拒绝', verify(l1.body.data.token.replace(/.$/, '0')) === null);
+check('篡改令牌被拒绝', verify(l1.body.data.token.replace(/.$/, c => c === '0' ? '1' : '0')) === null);
 const a1 = handleAdmin('stats', null);
 check('未带令牌访问管理接口返回401', a1.status === 401 && a1.body.code === 401);
 const a2 = handleAdmin('stats', { role: 'user' });

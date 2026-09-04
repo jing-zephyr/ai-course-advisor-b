@@ -147,6 +147,13 @@
   .hit .bar { height: 6px; border-radius: 3px; background: linear-gradient(90deg, #3563c9, #d98a2b); flex: 0 0 auto; }
   .hit .ht { font-size: 10.5px; color: var(--muted); }
   .role-pill { font-size: 11px; border-radius: 999px; padding: 3px 10px; border: 1px solid #eccfb9; background: #fdf4ec; color: #b06a1a; }
+  .gate-hint { font-size: 11.5px; color: #b06a1a; background: #fdf4ec; border: 1px dashed #eccfb9; border-radius: 10px; padding: 6px 10px; margin-top: 8px; text-align: center; line-height: 1.6; }
+  /* 移动端补丁：必须置于样式表末尾——登录门禁与观测面板的基础样式定义在上方媒体查询之后，同优先级后者会覆盖前者 */
+  @media (max-width: 640px) {
+    .gate-card { padding: 20px 16px; }
+    .entry-grid { grid-template-columns: 1fr; }
+    .admin-panel { width: 92vw; }
+  }
 </style>
 </head>
 <body>
@@ -188,10 +195,11 @@
     </div>
     <div class="gate-form" id="formAdmin">
       <input id="pwdInput" type="password" maxlength="64" placeholder="技术人员口令" />
+      <div class="gate-hint">评审演示口令：opc2026-review<br>输入后点「验证并进入」，再点右上角「技术观测」查看面板</div>
       <button class="go" id="goAdmin" type="button">验证并进入</button>
     </div>
     <div class="gate-err" id="gateErr"></div>
-    <div class="gate-note">演示级鉴权：口令经服务端 HMAC 签名令牌校验，12 小时过期；<br>课程信息以三份官方素材为准，AI 不作超出资料的承诺。</div>
+    <div class="gate-note">演示级鉴权：口令仅由服务端校验，一次登录 7 天内有效；<br>课程信息以三份官方素材为准，AI 不作超出资料的承诺。</div>
   </div>
 </div>
 
@@ -336,7 +344,7 @@ let session = null;
 /* —— 双入口登录（演示级鉴权）—— */
 let auth = null;
 try { auth = JSON.parse(localStorage.getItem('aca_auth') || 'null'); } catch {}
-if (auth && Date.now() - (auth.at || 0) > 12 * 3600 * 1000) { auth = null; localStorage.removeItem('aca_auth'); }
+if (auth && Date.now() - (auth.at || 0) > 7 * 24 * 3600 * 1000) { auth = null; localStorage.removeItem('aca_auth'); }
 
 const ZNAME = { camp: '夏令营', teacher: '教师培训', platform: 'OPC平台', all: '全库' };
 
