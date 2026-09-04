@@ -658,7 +658,7 @@ $('nickBtn').onclick = () => { const v = prompt('请输入您的昵称', user ||
 
 refreshWho();
 newSession();
-// 已登录（12h 内）直接进入；否则停留在登录门禁
+// 已登录（7 天有效期内）直接进入；否则停留在登录门禁
 if (auth) hideGate(); else showGate();
 </script>
 </body>
