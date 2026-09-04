@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# AI课程顾问 真机测试电池（24例）：功能≥8 / RAG专项≥6+ / 前端体验≥4 / 部署≥2
+# AI课程顾问 真机测试电池（36例）：功能 F1-F20 / RAG专项 R1-R7 / 前端体验 FE1-FE7 / 部署 D1-D3
 # 用法：python test/live_test.py [base_url]   默认 http://localhost:3000
 import json, sys, io, time, urllib.request, urllib.error, os, datetime
 
@@ -160,6 +160,40 @@ else:
     record('F14', '功能：admin令牌访问观测统计', '(无admin令牌)', '200', '跳过', None)
     record('F15', '功能：admin对话返回检索过程trace', '(无admin令牌)', 'trace齐全', '跳过', None)
 
+# ---------- 功能测试 F16-F20：四入口角色差异化 ----------
+s, d = post_json('/api/login', {'role': 'teacher'})
+teacher_tok = d.get('data', {}).get('token', '')
+ok = s == 200 and d.get('code') == 0 and teacher_tok.startswith('aca.teacher.')
+record('F16', '功能：教师入口免密登录签发teacher令牌', 'POST /api/login {role:teacher}', '200 + aca.teacher. 前缀令牌', f'HTTP {s} token={teacher_tok[:25]}...', ok)
+
+s, d = post_json('/api/login', {'role': 'biz'})
+biz_tok = d.get('data', {}).get('token', '')
+ok = s == 200 and d.get('code') == 0 and biz_tok.startswith('aca.biz.')
+record('F17', '功能：企业入口免密登录签发biz令牌', 'POST /api/login {role:biz}', '200 + aca.biz. 前缀令牌', f'HTTP {s} token={biz_tok[:25]}...', ok)
+
+s, d = post_json('/api/login', {'role': 'hacker'})
+record('F18', '功能：未知角色登录拒绝', 'POST /api/login {role:hacker}', 'HTTP400 + 未知角色提示', f"HTTP {s} {d.get('message','')}", s == 400 and d.get('code') == 400)
+
+if teacher_tok:
+    s, d = get('/api/admin?action=stats', token=teacher_tok)
+    record('F19', '功能：teacher令牌访问管理接口被拒', 'GET /api/admin（teacher令牌）', 'HTTP401', f'HTTP {s}', s == 401 and json.loads(d).get('code') == 401)
+else:
+    record('F19', '功能：teacher令牌访问管理接口被拒', '(无teacher令牌)', 'HTTP401', '跳过', None)
+
+if teacher_tok:
+    body = json.dumps({'message': '教师培训有哪些级别？', 'history': [], 'sessionId': 't-f20'}, ensure_ascii=False).encode('utf-8')
+    req = urllib.request.Request(BASE + '/api/chat', data=body,
+                                 headers={'Content-Type': 'application/json; charset=utf-8', 'Authorization': 'Bearer ' + teacher_tok})
+    try:
+        with urllib.request.urlopen(req, timeout=90) as r:
+            d = json.loads(r.read().decode('utf-8'))
+        ok = d.get('code') == 0 and 'trace' not in d.get('data', {}) and 'L1' in d.get('data', {}).get('reply', '')
+        record('F20', '功能：teacher角色正常应答且不返回trace', '带teacher令牌提问教师培训', '200正常应答 + 无trace字段', f"code={d.get('code')} trace={'trace' in d.get('data', {})}", ok)
+    except Exception as e:
+        record('F20', '功能：teacher角色正常应答且不返回trace', '带teacher令牌提问', '200 + 无trace', str(e)[:50], False)
+else:
+    record('F20', '功能：teacher角色正常应答且不返回trace', '(无teacher令牌)', '200 + 无trace', '跳过', None)
+
 # ---------- RAG 专项 R1-R7 ----------
 s, d = chat('夏令营线下班多少钱？早鸟价呢？', sid='t-r1')
 r = d.get('data', {}).get('reply', '')
@@ -218,8 +252,12 @@ record('FE4', '前端：移动端适配标记', '检查viewport/媒体查询/16p
 ok = '100dvh' in html and 'SpeechRecognition' in html
 record('FE5', '前端：软键盘适配(dvh)+语音输入降级', '检查100dvh与SR降级', '存在', '存在' if ok else '缺失', ok)
 
-ok = '用户入口' in html and '技术人员入口' in html and 'gate' in html and 'adminDrawer' in html and '检索追踪' in html and '知识库状态' in html
-record('FE6', '前端：登录门禁双入口+技术观测面板', '检查gate双入口与admin面板DOM', '用户/技术人员双入口、三页签面板均存在', '全部存在' if ok else '缺失', ok)
+ok = '用户入口（学生/家长）' in html and '教师入口' in html and '企业/机构入口' in html and '技术人员/管理入口' in html and 'adminDrawer' in html and '检索追踪' in html and '知识库状态' in html
+record('FE6', '前端：登录门禁四入口+技术观测面板', '检查gate四入口与admin面板DOM', '用户/教师/企业/技术人员四入口、三页签面板均存在', '全部存在' if ok else '缺失', ok)
+
+ok = ('entry warm' in html and 'entry cool' in html and 'body.r-user' in html and 'ROLE_CFG' in html
+      and 'renderTopics' in html and 'grid-template-columns: 1fr;' in html and '#fffaf2' in html.lower())
+record('FE7', '前端：角色化主题（用户暖色/其余淡蓝）+移动端单列', '检查warm/cool样式与r-user主题、ROLE_CFG', '暖色入口卡+角色主题CSS+话题卡渲染+窄屏单列均存在', '全部存在' if ok else '缺失', ok)
 
 # ---------- 部署测试 D1-D3 ----------
 s, html = get('/')

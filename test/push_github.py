@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # 经 Git Data API 推送 B级测试单代码到 GitHub（需先刷新 github-trae.txt 令牌）
-# 安全约束：不推 .env / sessions.json / 任何含密钥文件
+# 安全约束（公开仓库边界）：白名单制——只推源码+README+架构/测试/AI标注/演示说明+知识库；
+# 绝不推 .env / sessions.json / 过程记录 / 草稿 / 任务素材；推送前对每个文件做密钥模式扫描。
 import base64
 import json
 import os
@@ -10,8 +11,9 @@ import urllib.error
 
 TOKEN = open(r'C:\Users\T\Desktop\20260822OPC order\github-trae.txt', encoding='utf-8').read().strip()
 APP = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(APP))  # 测试单根目录（04_交付文档/02_知识库所在层）
 REPO = 'ai-course-advisor-b'
-MSG = '增强：双入口登录 + 技术观测面板；Serverless 函数合并为统一 api 入口（修复容器隔离导致的会话丢失），公网31例测试全过'
+MSG = '四入口角色登录（用户/教师/企业免密+管理口令）+ 角色化界面主题与提示词三层注入 + 移动端适配；本地37例真机测试36过（1项公网随部署窗口补测）'
 
 FILES = ['public/index.html', 'public/_redirects', 'api/chat.js', 'api/history.js',
          'api/login.js', 'api/admin.js',
@@ -20,8 +22,18 @@ FILES = ['public/index.html', 'public/_redirects', 'api/chat.js', 'api/history.j
          'netlify/functions/history.js', 'netlify/functions/login.js', 'netlify/functions/admin.js',
          'server.js', 'package.json', 'netlify.toml', '.env.example', '.gitignore', 'README.md',
          'test/smoke.js', 'test/live_test.py', 'test/live_test_output.txt',
-         'test/deploy_netlify.py', 'test/deploy_vercel.py', 'test/export_kb_view.py', 'test/push_github.py']
+         'test/deploy_netlify.py', 'test/deploy_vercel.py', 'test/export_kb_view.py',
+         'test/build_submit_zip.py', 'test/check_sessions_privacy.py', 'test/push_github.py']
+# 交付文档（本地绝对路径 → 仓库路径）：架构说明/测试记录/AI辅助标注/演示说明/知识库视图
+DOCS = [
+    (r'04_交付文档\系统架构说明.md', 'docs/系统架构说明.md'),
+    (r'04_交付文档\测试记录表.md', 'docs/测试记录表.md'),
+    (r'04_交付文档\AI辅助开发标注.md', 'docs/AI辅助开发标注.md'),
+    (r'04_交付文档\演示说明.md', 'docs/演示说明.md'),
+    (r'02_知识库\结构化知识库_36块.md', 'docs/结构化知识库_36块.md'),
+]
 NEVER = ['.env', 'data/sessions.json', 'data/logs.json']  # 明文密钥与运行时数据，禁止外传
+SECRET_PATTERNS = [b'nfp_', b'ghp_', b'github_pat_', b'sk-']  # 常见令牌前缀，命中即中止
 
 
 import http.client
@@ -63,11 +75,16 @@ base = f'https://api.github.com/repos/{OWNER}/{REPO}'
 head = api('GET', base + '/git/ref/heads/main')['object']['sha']
 base_tree = api('GET', base + '/git/commits/' + head)['tree']['sha']
 
+sources = [(os.path.join(APP, rel.replace('/', os.sep)), rel) for rel in FILES]
+sources += [(os.path.join(ROOT, loc), repo) for loc, repo in DOCS]
+
 entries = []
-for rel in FILES:
+for local, rel in sources:
     assert rel not in NEVER, rel
-    local = os.path.join(APP, rel.replace('/', os.sep))
     raw = open(local, 'rb').read()
+    if rel != 'test/push_github.py':  # 本脚本含模式定义字符串而非真实密钥，跳过自检
+        for pat in SECRET_PATTERNS:
+            assert pat not in raw, f'疑似密钥命中 {pat!r}：{rel}，已中止推送'
     blob = api('POST', base + '/git/blobs',
                {'content': base64.b64encode(raw).decode('ascii'), 'encoding': 'base64'})
     entries.append({'path': rel, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})

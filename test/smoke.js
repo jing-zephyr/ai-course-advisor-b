@@ -13,6 +13,7 @@ const kb = require('../data/knowledge.json');
 const { retrieve, route } = require('../lib/retrieval');
 const { handleChat, handleHistory, handleLogin, handleAdmin, MSG } = require('../lib/handler');
 const { verify } = require('../lib/auth');
+const { buildSystemPrompt, entryHint } = require('../lib/prompt');
 
 let pass = 0, fail = 0;
 function check(name, cond) {
@@ -47,6 +48,12 @@ check('检索返回trace（zone/hits/score齐全）', r4.trace && r4.trace.zone 
 const l1 = handleLogin({ role: 'user' });
 check('用户入口免密签发令牌', l1.status === 200 && /^aca\.user\.\d+\.[0-9a-f]{32}$/.test(l1.body.data.token));
 check('用户令牌可校验', verify(l1.body.data.token) && verify(l1.body.data.token).role === 'user');
+const lt = handleLogin({ role: 'teacher' });
+check('教师入口免密签发teacher令牌', lt.status === 200 && /^aca\.teacher\./.test(lt.body.data.token) && verify(lt.body.data.token).role === 'teacher');
+const lb = handleLogin({ role: 'biz' });
+check('企业入口免密签发biz令牌', lb.status === 200 && /^aca\.biz\./.test(lb.body.data.token) && verify(lb.body.data.token).role === 'biz');
+const lx = handleLogin({ role: 'nobody' });
+check('未知角色登录返回400', lx.status === 400 && lx.body.code === 400);
 const l2 = handleLogin({ role: 'admin', password: 'wrong-pw' });
 check('技术入口错误口令返回401', l2.status === 401 && l2.body.code === 401);
 const l3 = handleLogin({ role: 'admin', password: process.env.ADMIN_PASSWORD });
@@ -56,6 +63,18 @@ const a1 = handleAdmin('stats', null);
 check('未带令牌访问管理接口返回401', a1.status === 401 && a1.body.code === 401);
 const a2 = handleAdmin('stats', { role: 'user' });
 check('user角色访问管理接口返回401', a2.status === 401);
+check('teacher角色访问管理接口返回401', handleAdmin('stats', { role: 'teacher' }).status === 401);
+check('biz角色访问管理接口返回401', handleAdmin('sessions', { role: 'biz' }).status === 401);
+
+// —— 入口角色基调注入（会话级提示词差异化） ——
+check('user入口基调含学生/家长视角', entryHint('user').includes('用户入口') && entryHint('user').includes('家长'));
+check('teacher入口基调含教师视角', entryHint('teacher').includes('教师入口'));
+check('biz入口基调含企业视角', entryHint('biz').includes('企业'));
+check('admin无入口基调（不污染技术观测）', entryHint('admin') === null);
+const sp1 = buildSystemPrompt([], null, entryHint('teacher'));
+check('系统提示词含会话级入口注入段', sp1.includes('入口身份基调') && sp1.includes('教师入口'));
+const sp2 = buildSystemPrompt([], null, null);
+check('无入口时系统提示词不含入口注入段', !sp2.includes('入口身份基调'));
 const a3 = handleAdmin('stats', { role: 'admin' });
 check('admin令牌访问stats返回知识库/会话统计', a3.status === 200 && a3.body.data.kb.blocks >= 30);
 const a4 = handleAdmin('knowledge', { role: 'admin' });
